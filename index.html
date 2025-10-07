@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Mining Board Game</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f0f8ff; text-align:center; }
+  h1 { color:#333; }
+  #board { display:grid; grid-template-columns: repeat(5, 100px); grid-template-rows: repeat(4, 100px); gap:5px; justify-content:center; margin:20px auto; }
+  .cell { border:2px solid #555; border-radius:10px; display:flex; justify-content:center; align-items:center; position:relative; font-size:12px; padding:5px; background:#fff; }
+  .player { width:20px; height:20px; border-radius:50%; position:absolute; bottom:5px; right:5px; }
+  #dice { font-size:50px; margin:20px; cursor:pointer; }
+  #info { margin:20px; }
+  .card { display:none; background:#fffbcc; border:2px solid #f0c36d; border-radius:10px; padding:10px; width:300px; margin:20px auto; }
+  .card button { margin-top:10px; }
+</style>
+</head>
+<body>
+
+<h1>Data Mining Board Game</h1>
+<div id="dice">🎲</div>
+<div id="info">Очередь игрока: <span id="currentPlayer">1</span></div>
+<div id="board"></div>
+
+<div class="card" id="questionCard">
+  <div id="questionText"></div>
+  <input type="text" id="answerInput" placeholder="Жауабыңызды енгізіңіз">
+  <br>
+  <button id="submitAnswer">Жауап беру</button>
+</div>
+
+<script>
+const questions = [
+"Data Mining дегеніміз не?",
+"Деректерді талдаудың негізгі кезеңдерін ата.",
+"“Big Data” ұғымы нені білдіреді?",
+"“Data Cleaning” не үшін қажет?",
+"“Outlier” дегеніміз не, мысал келтір.",
+"“Regression Analysis” қандай мақсатта қолданылады?",
+"“Classification” мен “Clustering” айырмашылығы неде?",
+"“Decision Tree” не үшін қолданылады?",
+"“SQL” тілінің маңызы қандай?",
+"“Data Visualization” не береді?",
+"“ETL” аббревиатурасы нені білдіреді?",
+"“Feature Selection” деген не?",
+"“Machine Learning” Data Mining-де қалай қолданылады?",
+"“Overfitting” деген не, оны қалай болдырмауға болады?",
+"“Data Warehouse” ұғымын түсіндір.",
+"“Normalization” не үшін қажет?",
+"“Supervised Learning” мен “Unsupervised Learning” айырмашылығы неде?",
+"“Python” тілінің Data Mining саласындағы рөлі қандай?",
+"“Correlation” не көрсетеді?",
+"“Anomaly Detection” не үшін керек?"
+];
+
+let players = [
+  {position:0, score:0, color:'red'},
+  {position:0, score:0, color:'blue'},
+  {position:0, score:0, color:'green'},
+  {position:0, score:0, color:'orange'}
+];
+
+let currentPlayer = 0;
+
+const boardDiv = document.getElementById('board');
+const diceDiv = document.getElementById('dice');
+const infoSpan = document.getElementById('currentPlayer');
+const questionCard = document.getElementById('questionCard');
+const questionText = document.getElementById('questionText');
+const answerInput = document.getElementById('answerInput');
+const submitAnswer = document.getElementById('submitAnswer');
+
+function createBoard() {
+  for(let i=0;i<20;i++){
+    const cell = document.createElement('div');
+    cell.className='cell';
+    cell.id='cell'+i;
+    cell.innerText='Клетка '+(i+1);
+    boardDiv.appendChild(cell);
+  }
+  updatePlayers();
+}
+
+function updatePlayers() {
+  for(let i=0;i<20;i++){
+    document.getElementById('cell'+i).innerHTML='Клетка '+(i+1);
+  }
+  players.forEach((p,index)=>{
+    const cell = document.getElementById('cell'+p.position);
+    const playerDiv = document.createElement('div');
+    playerDiv.className='player';
+    playerDiv.style.background=p.color;
+    cell.appendChild(playerDiv);
+  });
+}
+
+function rollDice() {
+  diceDiv.style.pointerEvents='none';
+  let dice = Math.floor(Math.random()*6)+1;
+  diceDiv.innerText = '🎲 '+dice;
+  movePlayer(dice);
+}
+
+function movePlayer(dice){
+  let p = players[currentPlayer];
+  p.position += dice;
+  if(p.position >= 19) p.position = 19;
+  showQuestion(currentPlayer);
+}
+
+function showQuestion(playerIndex){
+  let qIndex = Math.floor(Math.random()*questions.length);
+  questionText.innerText = questions[qIndex];
+  questionCard.style.display='block';
+  answerInput.value='';
+  submitAnswer.onclick = ()=>{
+    // простая проверка: если введено что-то — правильно
+    let ans = answerInput.value.trim();
+    if(ans!==''){
+      players[playerIndex].score++;
+      alert('Дұрыс! Балл +1');
+    } else {
+      // наказание: откат на 2 клетки назад
+      players[playerIndex].position = Math.max(players[playerIndex].position -2,0);
+      alert('Қате! Кері 2 клетка');
+    }
+    questionCard.style.display='none';
+    updatePlayers();
+    nextPlayer();
+  }
+}
+
+function nextPlayer(){
+  // Проверка конца игры
+  if(players.every(p=>p.position>=19)){
+    let winner = players.reduce((a,b)=>a.score>b.score?a:b);
+    alert('Ойын аяқталды! Жеңімпаз: '+winner.color+' (Балл: '+winner.score+')');
+    return;
+  }
+  currentPlayer = (currentPlayer+1)%4;
+  infoSpan.innerText=currentPlayer+1;
+  diceDiv.style.pointerEvents='auto';
+}
+
+diceDiv.onclick = rollDice;
+
+createBoard();
+</script>
+
+</body>
+</html>
